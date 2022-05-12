@@ -166,7 +166,8 @@ bool MrFreezeAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* MrFreezeAudioProcessor::createEditor()
 {
-    return new MrFreezeAudioProcessorEditor (*this);
+    //return new MrFreezeAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -181,6 +182,18 @@ void MrFreezeAudioProcessor::setStateInformation (const void* data, int sizeInBy
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout MrFreezeAudioProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        "Freeze",
+        "Freeze",
+        false
+        ));
+
+    return layout;
 }
 
 //==============================================================================
