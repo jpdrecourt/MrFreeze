@@ -56,7 +56,20 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
+    static constexpr auto fftOrder = 10;
+    static constexpr auto fftSize = 1 << fftOrder;
+
 private:
+    juce::dsp::FFT forwardFFT;
+    juce::dsp::WindowingFunction<float> window;
+    
+    std::array<float, fftSize> leftFifo, rightFifo;
+    std::array<float, fftSize * 2> leftFftData, rightFftData;
+    int fifoIndex = 0;
+    bool nextFFTBlockReady = false;
+
+    void pushNextSamplesIntoFifos(float leftSample, float rightSample);
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MrFreezeAudioProcessor)
 };

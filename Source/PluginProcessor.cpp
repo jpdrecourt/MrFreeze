@@ -11,8 +11,10 @@
 
 //==============================================================================
 MrFreezeAudioProcessor::MrFreezeAudioProcessor()
+    : forwardFFT(fftOrder),
+    window(fftSize, juce::dsp::WindowingFunction<float>::hann),
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+     AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
@@ -143,19 +145,25 @@ void MrFreezeAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    juce::dsp::AudioBlock<float> block(buffer);
+    
+    auto leftBlock = block.getSingleChannelBlock(0);
+    auto rightBlock = block.getSingleChannelBlock(1);
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    bool isFreezed = apvts.getRawParameterValue("Freeze")->load();
 
-        // ..do something to the data...
+    for (auto i = 0; i < leftBlock.getNumSamples(); ++i) {
+        if (isFreezed) {
+            leftBlock.setSample(0, i, 0.f);
+            rightBlock.setSample(0, i, 0.f);
+        }
     }
+}
+
+void MrFreezeAudioProcessor::pushNextSamplesIntoFifos(float leftSample, float rightSample)
+{
+
 }
 
 //==============================================================================
